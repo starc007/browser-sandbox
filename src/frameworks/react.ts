@@ -1,5 +1,5 @@
 import type { FrameworkAdapter } from "./types";
-import { findEntry, getReactVersionsFromPackageJson, injectScriptsIntoHtml } from "./utils";
+import { findEntry, getImportMapFromPackageJson, injectScriptsIntoHtml } from "./utils";
 
 const REACT_ENTRY_CANDIDATES = [
   "src/main.jsx",
@@ -16,16 +16,12 @@ const REACT_ENTRY_CANDIDATES = [
   "index.ts",
 ];
 
-const DEFAULT_REACT_VERSION = "18.2.0";
-
-function buildReactImportMap(reactVersion: string, reactDomVersion: string): Record<string, string> {
-  return {
-    react: `https://esm.sh/react@${reactVersion}`,
-    "react/jsx-runtime": `https://esm.sh/react@${reactVersion}/jsx-runtime`,
-    "react-dom": `https://esm.sh/react-dom@${reactDomVersion}`,
-    "react-dom/client": `https://esm.sh/react-dom@${reactDomVersion}/client`,
-  };
-}
+const DEFAULT_REACT_IMPORT_MAP: Record<string, string> = {
+  react: "https://esm.sh/react@18.2.0",
+  "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+  "react-dom": "https://esm.sh/react-dom@18.2.0",
+  "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+};
 
 export const reactAdapter: FrameworkAdapter = {
   getEntry(files) {
@@ -41,10 +37,9 @@ export const reactAdapter: FrameworkAdapter = {
   },
 
   getImportMap(files) {
-    const versions = getReactVersionsFromPackageJson(files);
-    const react = versions?.react ?? DEFAULT_REACT_VERSION;
-    const reactDom = versions?.reactDom ?? DEFAULT_REACT_VERSION;
-    return buildReactImportMap(react, reactDom);
+    const fromPkg = getImportMapFromPackageJson(files);
+    if (Object.keys(fromPkg).length > 0) return fromPkg;
+    return { ...DEFAULT_REACT_IMPORT_MAP };
   },
 
   getHtmlTemplate(scriptsBlock, customHtml) {

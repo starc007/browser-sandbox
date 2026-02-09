@@ -20,7 +20,7 @@ export async function buildSandbox(
   const adapter = getAdapter(framework);
   const entryPath = adapter.getEntry(files);
   const importMap = adapter.getImportMap(files);
-  const external = Object.keys(importMap);
+  const external = [...new Set(Object.keys(importMap).filter((k) => !k.endsWith("/")))];
 
   let bundle: string;
   try {

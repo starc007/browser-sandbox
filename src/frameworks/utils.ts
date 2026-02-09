@@ -3,7 +3,10 @@ import { normalizePath } from "../core/virtual-fs";
 /**
  * Find first file that exists in the file map (by normalized path).
  */
-export function findEntry(files: Record<string, string>, candidates: string[]): string | null {
+export function findEntry(
+  files: Record<string, string>,
+  candidates: string[]
+): string | null {
   const normalized = new Set<string>();
   for (const p of Object.keys(files)) {
     normalized.add(normalizePath(p));
@@ -26,32 +29,60 @@ export function getEntryFromIndexHtml(html: string): string | null {
   return src ? normalizePath(src) : null;
 }
 
-/**
- * Get react and react-dom versions from package.json (strip ^ and ~ for CDN).
- */
-export function getReactVersionsFromPackageJson(
-  files: Record<string, string>
-): { react: string; reactDom: string } | null {
-  const pkgKey = Object.keys(files).find((p) => normalizePath(p) === "package.json");
-  const raw = pkgKey ? files[pkgKey] : undefined;
-  if (!raw) return null;
-  try {
-    const pkg = JSON.parse(raw) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
-    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-    const react = deps?.react ?? deps?.React;
-    const reactDom = deps?.["react-dom"];
-    if (!react) return null;
-    const strip = (v: string) => v.replace(/^[\^~]/, "");
-    return { react: strip(react), reactDom: reactDom ? strip(reactDom) : strip(react) };
-  } catch {
+const ESM_SH_BASE = "https://esm.sh";
+
+/** Strip ^ and ~ from version for CDN URLs. Skip file:/workspace: etc. */
+function normalizeVersion(v: string): string | null {
+  if (
+    v.startsWith("file:") ||
+    v.startsWith("workspace:") ||
+    v.startsWith("link:")
+  )
     return null;
+  return v.replace(/^[\^~]/, "").trim() || null;
+}
+
+/**
+ * Build a full import map from package.json (dependencies + devDependencies).
+ * Each package gets a main entry and a trailing-slash entry for subpath imports (e.g. "react/jsx-runtime").
+ */
+export function getImportMapFromPackageJson(
+  files: Record<string, string>
+): Record<string, string> {
+  const pkgKey = Object.keys(files).find(
+    (p) => normalizePath(p) === "package.json"
+  );
+  const raw = pkgKey ? files[pkgKey] : undefined;
+  if (!raw) return {};
+  try {
+    const pkg = JSON.parse(raw) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    if (!deps || typeof deps !== "object") return {};
+    const map: Record<string, string> = {};
+    for (const [name, range] of Object.entries(deps)) {
+      const version = normalizeVersion(range);
+      if (!version) continue;
+      const url = `${ESM_SH_BASE}/${name}@${version}`;
+      map[name] = url;
+      map[name + "/"] = url + "/";
+    }
+    return map;
+  } catch {
+    return {};
   }
 }
 
 /**
  * Replace the first <script type="module" src="..."> in html with scriptsBlock.
  */
-export function injectScriptsIntoHtml(html: string, scriptsBlock: string): string {
-  const re = /<script[^>]*type\s*=\s*["']module["'][^>]*src\s*=\s*["'][^"']*["'][^>]*>\s*<\/script>/i;
+export function injectScriptsIntoHtml(
+  html: string,
+  scriptsBlock: string
+): string {
+  const re =
+    /<script[^>]*type\s*=\s*["']module["'][^>]*src\s*=\s*["'][^"']*["'][^>]*>\s*<\/script>/i;
   return html.replace(re, scriptsBlock);
 }
