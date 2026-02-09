@@ -8,7 +8,7 @@
 ## Install
 
 ```bash
-bun add ai-browser-sandbox
+npm install ai-browser-sandbox
 ```
 
 ## Usage
@@ -54,7 +54,7 @@ document.querySelector("iframe").src = url;
 From the repo root:
 
 ```bash
-bun run example
+npm run example
 ```
 
 Open **http://localhost:3000/**. Choose **Framework** (React or Vanilla), select your **project folder** or **individual files**, then click **Build**. Only source files (`.js`, `.jsx`, `.ts`, `.tsx`, `.html`, `.json`, `.css`) are used; `node_modules`, `.git`, `dist`, etc. are ignored.

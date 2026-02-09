@@ -1,6 +1,6 @@
 {
   "name": "ai-browser-sandbox",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Build Vite-style project files in the browser and get a Blob URL for iframe loading",
   "type": "module",
   "main": "dist/index.js",
