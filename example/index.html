@@ -22,6 +22,9 @@
     .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 600px) { .two { grid-template-columns: 1fr; } }
   </style>
+  <script type="importmap">
+    {"imports":{"esbuild-wasm":"https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.js"}}
+  </script>
 </head>
 <body>
   <h1>Browser Sandbox — Example</h1>
@@ -75,7 +78,7 @@ export default function App() {
     };
 
     const vanillaFiles = {
-      "index.html": '<script type="module" src="/src/main.js"></script>',
+      "index.html": '<script type="module" src="/src/main.js"></scr' + 'ipt>',
       "src/main.js": `
 document.body.innerHTML = "<div style='padding:20px;font-family:system-ui'><h1>Hello from vanilla</h1><p>Entry from index.html, built in the browser.</p></div>";
       `.trim(),
@@ -85,7 +88,7 @@ document.body.innerHTML = "<div style='padding:20px;font-family:system-ui'><h1>H
       setStatus("Loading…", "loading");
       previewEl.style.display = "none";
       try {
-        const { buildSandbox } = await import("../dist/index.js");
+        const { buildSandbox } = await import("./dist/browser-sandbox.js");
         setStatus("Building…", "loading");
         const { url } = await buildSandbox({ files, framework });
         setStatus("Done. Preview below.", "ok");

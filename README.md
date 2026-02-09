@@ -40,6 +40,16 @@ document.querySelector("iframe").src = url;
 - **react** — React + React DOM (entry: `src/main.tsx`, `main.tsx`, `src/index.tsx`, etc.)
 - **vanilla** — Plain JS (entry: `index.html` with a `<script type="module" src="...">` pointing to your main JS)
 
+## Running the example
+
+From the repo root:
+
+```bash
+bun run example
+```
+
+Then open **http://localhost:3000/** in your browser and use **Build React** or **Build Vanilla** to test.
+
 ## Requirements
 
 - Runs in the browser only (no Node).

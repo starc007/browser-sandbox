@@ -1,6 +1,6 @@
 # Example — Test Browser Sandbox
 
-1. Build the package and start a local server:
+1. Build the package, copy `dist` into `example/dist`, and start a local server:
 
    ```bash
    bun run example
@@ -8,7 +8,7 @@
 
 2. Open in your browser:
 
-   **http://localhost:3000/example/**
+   **http://localhost:3000/**
 
 3. Click **Build React** or **Build Vanilla** to run a test build. The preview iframe will show the built app.
 

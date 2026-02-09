@@ -20,7 +20,7 @@
     "build": "bun run tsc",
     "tsc": "tsc",
     "dev": "bun run build",
-    "example": "bun run build && bunx serve . -p 3000"
+    "example": "bun run build && bun build src/index.ts --outfile=example/dist/browser-sandbox.js --target=browser --format=esm --external=esbuild-wasm && bunx serve example -p 3000"
   },
   "dependencies": {
     "esbuild-wasm": "^0.24.0"

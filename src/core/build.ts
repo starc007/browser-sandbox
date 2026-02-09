@@ -2,7 +2,7 @@ import * as esbuild from "esbuild-wasm";
 import { createFileMap } from "./virtual-fs";
 import { virtualFsPlugin } from "./esbuild-plugin";
 
-const DEFAULT_WASM_URL = "https://unpkg.com/esbuild-wasm@0.24.0/esbuild.wasm";
+const DEFAULT_WASM_URL = "https://unpkg.com/esbuild-wasm@0.24.2/esbuild.wasm";
 
 let initPromise: Promise<void> | null = null;
 
