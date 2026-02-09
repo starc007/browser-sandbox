@@ -130,7 +130,12 @@
         </div>
         <div class="field">
           <label for="files-input">Or select files</label>
-          <input type="file" id="files-input" multiple accept=".js,.jsx,.ts,.tsx,.html,.json,.css" />
+          <input
+            type="file"
+            id="files-input"
+            multiple
+            accept=".js,.jsx,.ts,.tsx,.html,.json,.css"
+          />
         </div>
         <div class="field">
           <button type="button" id="run-build">Build</button>
@@ -205,13 +210,18 @@
           const framework = frameworkSelect.value;
           const { buildSandbox } = await import("./dist/browser-sandbox.js");
           setStatus("Building…", "loading");
-          const { url } = await buildSandbox({ files, framework });
+          const { url, error } = await buildSandbox({ files, framework });
+
+          if (error) {
+            setStatus(error, "err");
+            return;
+          }
           setStatus("Done. Preview below.", "ok");
           iframeEl.src = url;
           previewEl.style.display = "block";
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
-          setStatus("Error: " + msg, "err");
+          setStatus(msg, "err");
         }
       }
 

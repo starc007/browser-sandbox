@@ -9,8 +9,10 @@ export interface BuildSandboxOptions {
   framework: FrameworkName;
 }
 
-/** Result of a successful sandbox build. */
+/** Result of a sandbox build. On success, url is set. On failure, error is set with a human-readable message. */
 export interface BuildSandboxResult {
-  /** Blob URL to load in an iframe (e.g. iframe.src = url). */
+  /** Blob URL to load in an iframe (e.g. iframe.src = url). Empty when error is set. */
   url: string;
+  /** Human-readable error message when the build failed. */
+  error?: string;
 }
