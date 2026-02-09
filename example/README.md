@@ -10,6 +10,6 @@
 
    **http://localhost:3000/**
 
-3. Click **Build Axiom** to load the Axiom project (React + Vite-style under `axiom/`), build it in the browser, and preview it in the iframe.
+3. Choose **Framework** (React or Vanilla), select your **project folder** (or files) via the file input, then click **Build**. The preview iframe shows the built app.
 
-The page fetches the Axiom source files from the server, calls `buildSandbox({ files, framework: "react" })`, and displays the result in the iframe.
+Only source files (`.js`, `.jsx`, `.ts`, `.tsx`, `.html`, `.json`, `.css`) are used; `node_modules`, `.git`, `dist`, and similar paths are ignored. Use “Upload folder” (directory picker) so paths like `src/main.jsx` and `package.json` are preserved.

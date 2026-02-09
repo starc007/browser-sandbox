@@ -38,7 +38,7 @@ document.querySelector("iframe").src = url;
 ## Supported frameworks
 
 - **react** — React + React DOM (entry: `src/main.tsx`, `main.tsx`, `src/index.tsx`, etc.)
-- **vanilla** — Plain JS (entry: `index.html` with a `<script type="module" src="...">` pointing to your main JS)
+- **vanilla** — Plain HTML/JS (entry: `index.html` only). Use a `<script type="module" src="...">` for an external JS file, or inline script only (single HTML file, no JS file)
 
 ## Running the example
 

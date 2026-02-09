@@ -2,21 +2,20 @@ import type { FrameworkAdapter } from "./types";
 import { normalizePath } from "../core/virtual-fs";
 import { getEntryFromIndexHtml, getImportMapFromPackageJson, injectScriptsIntoHtml } from "./utils";
 
+/** Returned by getEntry when index.html has no external script (inline-only). */
+const INLINE_ONLY = "";
+
 export const vanillaAdapter: FrameworkAdapter = {
   getEntry(files) {
     const indexPath = normalizePath("index.html");
     const indexKey = Object.keys(files).find((p) => normalizePath(p) === indexPath);
     const indexContent = indexKey ? files[indexKey] : undefined;
     if (!indexContent) {
-      throw new Error(
-        'Entry file not found. Vanilla expects index.html with a <script type="module" src="...">.'
-      );
+      throw new Error("Entry file not found. Vanilla expects index.html.");
     }
     const entryPath = getEntryFromIndexHtml(indexContent);
     if (!entryPath) {
-      throw new Error(
-        'index.html must contain a module script, e.g. <script type="module" src="/src/main.js"></script>.'
-      );
+      return INLINE_ONLY;
     }
     const normalized = new Set(Object.keys(files).map((p) => normalizePath(p)));
     if (!normalized.has(entryPath)) {

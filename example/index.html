@@ -26,6 +26,21 @@
         margin-bottom: 0.25rem;
         font-weight: 600;
       }
+      select {
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        background: #2a2a2a;
+        color: #e0e0e0;
+        border: 1px solid #444;
+        border-radius: 6px;
+        min-width: 140px;
+      }
+      input[type="file"] {
+        display: block;
+        margin-top: 0.25rem;
+        color: #999;
+        font-size: 0.9rem;
+      }
       button {
         padding: 0.5rem 1rem;
         font-size: 1rem;
@@ -34,6 +49,7 @@
         color: white;
         border: none;
         border-radius: 6px;
+        margin-top: 0.5rem;
       }
       button:hover {
         background: #2563eb;
@@ -73,6 +89,15 @@
         height: 600px;
         border: none;
       }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: flex-end;
+      }
+      .field {
+        flex: 0 0 auto;
+      }
     </style>
     <script type="importmap">
       {
@@ -85,13 +110,32 @@
   <body>
     <h1>Browser Sandbox — Example</h1>
     <p>
-      Load the Axiom (React + Vite-style) project and preview it in the iframe
-      below.
+      Upload your project folder (or files), choose the framework, and build.
+      Only source files (e.g. .js, .jsx, .ts, .tsx, .html, .json, .css) are
+      used; config and other files are ignored.
     </p>
 
     <section>
-      <label>Test</label>
-      <button type="button" id="run-build">Build Axiom</button>
+      <div class="row">
+        <div class="field">
+          <label for="framework">Framework</label>
+          <select id="framework">
+            <option value="react">React</option>
+            <option value="vanilla">Vanilla</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="folder-input">Project folder</label>
+          <input type="file" id="folder-input" webkitdirectory multiple />
+        </div>
+        <div class="field">
+          <label for="files-input">Or select files</label>
+          <input type="file" id="files-input" multiple accept=".js,.jsx,.ts,.tsx,.html,.json,.css" />
+        </div>
+        <div class="field">
+          <button type="button" id="run-build">Build</button>
+        </div>
+      </div>
       <div id="status"></div>
     </section>
 
@@ -104,34 +148,51 @@
       const statusEl = document.getElementById("status");
       const iframeEl = document.getElementById("iframe");
       const previewEl = document.getElementById("preview");
+      const folderInput = document.getElementById("folder-input");
+      const filesInput = document.getElementById("files-input");
+      const frameworkSelect = document.getElementById("framework");
+
+      const ALLOWED_EXT = /\.(js|jsx|ts|tsx|html|json|css)$/i;
+      const IGNORE_DIRS =
+        /(^|\/)(node_modules|\.git|dist|build|__pycache__)(\/|$)/;
 
       function setStatus(msg, type = "") {
         statusEl.textContent = msg;
         statusEl.className = type;
       }
 
-      const AXIOM_PATHS = [
-        "package.json",
-        "index.html",
-        "src/main.jsx",
-        "src/App.jsx",
-        "src/components/Navigation.jsx",
-        "src/components/Hero.jsx",
-        "src/components/Features.jsx",
-        "src/components/Pricing.jsx",
-        "src/components/Testimonials.jsx",
-        "src/components/FAQ.jsx",
-        "src/components/Footer.jsx",
-      ];
+      function pathFromFile(file) {
+        if (file.webkitRelativePath) {
+          const parts = file.webkitRelativePath.split("/");
+          if (parts.length > 1) parts.shift();
+          return parts.join("/");
+        }
+        return file.name;
+      }
 
-      async function loadAxiomFiles() {
+      function shouldInclude(path) {
+        if (IGNORE_DIRS.test(path)) return false;
+        return ALLOWED_EXT.test(path);
+      }
+
+      async function buildFilesFromInput() {
+        const folderList = folderInput.files;
+        const filesList = filesInput.files;
+        const fileList = folderList?.length ? folderList : filesList;
+        if (!fileList?.length) {
+          throw new Error("Select a project folder or individual files first.");
+        }
         const files = {};
-        for (const path of AXIOM_PATHS) {
-          const url = "./axiom/" + path;
-          const res = await fetch(url);
-          if (!res.ok)
-            throw new Error("Failed to fetch " + url + ": " + res.status);
-          files[path] = await res.text();
+        for (const file of fileList) {
+          const path = pathFromFile(file);
+          if (!shouldInclude(path)) continue;
+          const text = await file.text();
+          files[path] = text;
+        }
+        if (Object.keys(files).length === 0) {
+          throw new Error(
+            "No source files found. Include .js, .jsx, .ts, .tsx, .html, .json, or .css."
+          );
         }
         return files;
       }
@@ -140,10 +201,11 @@
         setStatus("Loading…", "loading");
         previewEl.style.display = "none";
         try {
-          const files = await loadAxiomFiles();
+          const files = await buildFilesFromInput();
+          const framework = frameworkSelect.value;
           const { buildSandbox } = await import("./dist/browser-sandbox.js");
           setStatus("Building…", "loading");
-          const { url } = await buildSandbox({ files, framework: "react" });
+          const { url } = await buildSandbox({ files, framework });
           setStatus("Done. Preview below.", "ok");
           iframeEl.src = url;
           previewEl.style.display = "block";
