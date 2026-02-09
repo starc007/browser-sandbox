@@ -1,4 +1,4 @@
-# Contributing to browser-sandbox
+# Contributing to ai-browser-sandbox
 
 Thanks for your interest in contributing. This document gives a short guide to development and contributing.
 

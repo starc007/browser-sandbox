@@ -1,4 +1,4 @@
-# browser-sandbox
+# ai-browser-sandbox
 
 **Preview AI-generated code in the browser.** Pass in-memory project files (e.g. from an AI that generated React or Vanilla HTML/JS), get a Blob URL to load in an `<iframe>`—no server, no Node, no local build. Built for quickly rendering and iterating on generated Vite-style projects.
 
@@ -8,7 +8,7 @@
 ## Install
 
 ```bash
-bun add browser-sandbox
+bun add ai-browser-sandbox
 ```
 
 ## Usage
@@ -16,7 +16,7 @@ bun add browser-sandbox
 When you have project files as strings (e.g. from an AI or editor), pass them to `buildSandbox` and show the result in an iframe:
 
 ```ts
-import { buildSandbox } from "browser-sandbox";
+import { buildSandbox } from "ai-browser-sandbox";
 
 // e.g. files from AI-generated project
 const { url, error } = await buildSandbox({
