@@ -16,11 +16,12 @@ const REACT_ENTRY_CANDIDATES = [
   "index.ts",
 ];
 
+const REACT_VERSION = "18.2.0";
 const DEFAULT_REACT_IMPORT_MAP: Record<string, string> = {
-  react: "https://esm.sh/react@18.2.0",
-  "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
-  "react-dom": "https://esm.sh/react-dom@18.2.0",
-  "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+  react: `https://esm.sh/react@${REACT_VERSION}`,
+  "react/jsx-runtime": `https://esm.sh/react@${REACT_VERSION}/jsx-runtime`,
+  "react-dom": `https://esm.sh/react-dom@${REACT_VERSION}?external=react`,
+  "react-dom/client": `https://esm.sh/react-dom@${REACT_VERSION}/client?external=react`,
 };
 
 export const reactAdapter: FrameworkAdapter = {

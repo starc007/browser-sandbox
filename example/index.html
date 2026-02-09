@@ -153,6 +153,8 @@
       const ALLOWED_EXT = /\.(js|jsx|ts|tsx|html|json|css)$/i;
       const IGNORE_DIRS =
         /(^|[\/\\])(node_modules|\.git|dist|build|__pycache__)([\/\\]|$)/;
+      const IGNORE_FILES =
+        /(^|[\/\\])(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb|\.npmrc|\.yarnrc|tsconfig\.json|jsconfig\.json|vite\.config\.(js|ts|mjs)|webpack\.config\.(js|ts)|rollup\.config\.(js|ts)|esbuild\.config\.(js|ts)|tailwind\.config\.(js|ts)|postcss\.config\.(js|json))$/i;
 
       function setStatus(msg, type = "") {
         statusEl.textContent = msg;
@@ -175,6 +177,7 @@
       function shouldInclude(path) {
         const normalized = path.replace(/\\/g, "/");
         if (IGNORE_DIRS.test(normalized)) return false;
+        if (IGNORE_FILES.test(normalized)) return false;
         return ALLOWED_EXT.test(normalized);
       }
 
