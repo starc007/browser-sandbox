@@ -11,7 +11,11 @@ export function virtualFsPlugin(files: FileMap): Plugin {
     name: "virtual-fs",
     setup(build) {
       build.onResolve({ filter: /.*/ }, (args) => {
-        const dir = args.resolveDir || ".";
+        const dir =
+          args.resolveDir ||
+          (args.importer && args.path.startsWith(".")
+            ? args.importer.replace(/\/[^/]*$/, "") || "."
+            : ".");
         let path: string;
         if (args.path.startsWith(".") || args.path.startsWith("/")) {
           path = resolvePath(dir, args.path);

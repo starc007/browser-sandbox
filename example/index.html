@@ -1,107 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Browser Sandbox — Example</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a1a; color: #e0e0e0; }
-    h1 { margin-top: 0; }
-    section { margin-bottom: 1.5rem; }
-    label { display: block; margin-bottom: 0.25rem; font-weight: 600; }
-    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 6px; }
-    button:hover { background: #2563eb; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    #status { margin-top: 0.5rem; padding: 0.5rem; border-radius: 4px; min-height: 1.5rem; }
-    #status.ok { background: #166534; color: #bbf7d0; }
-    #status.err { background: #991b1b; color: #fecaca; }
-    #status.loading { background: #1e3a5f; color: #93c5fd; }
-    #preview { margin-top: 1rem; border: 1px solid #444; border-radius: 8px; overflow: hidden; background: #fff; }
-    #preview iframe { display: block; width: 100%; height: 400px; border: none; }
-    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media (max-width: 600px) { .two { grid-template-columns: 1fr; } }
-  </style>
-  <script type="importmap">
-    {"imports":{"esbuild-wasm":"https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.js"}}
-  </script>
-</head>
-<body>
-  <h1>Browser Sandbox — Example</h1>
-  <p>Run a test build (React or Vanilla) and preview the result in the iframe below.</p>
-
-  <section>
-    <label>Test</label>
-    <div class="two">
-      <button type="button" id="run-react">Build React</button>
-      <button type="button" id="run-vanilla">Build Vanilla</button>
-    </div>
-    <div id="status"></div>
-  </section>
-
-  <section id="preview" style="display: none;">
-    <label>Preview</label>
-    <iframe id="iframe" title="Sandbox preview"></iframe>
-  </section>
-
-  <script type="module">
-    const statusEl = document.getElementById("status");
-    const iframeEl = document.getElementById("iframe");
-    const previewEl = document.getElementById("preview");
-
-    function setStatus(msg, type = "") {
-      statusEl.textContent = msg;
-      statusEl.className = type;
-    }
-
-    const reactFiles = {
-      "src/main.tsx": `
-import React from "react";
-import { createRoot } from "react-dom/client";
-import App from "./App";
-
-const root = createRoot(document.getElementById("root"));
-root.render(<App />);
-      `.trim(),
-      "src/App.tsx": `
-import React from "react";
-
-export default function App() {
-  return (
-    <div style={{ padding: 20, fontFamily: "system-ui" }}>
-      <h1>Hello from sandbox</h1>
-      <p>React + Vite-style structure, built in the browser.</p>
-    </div>
-  );
-}
-      `.trim(),
-    };
-
-    const vanillaFiles = {
-      "index.html": '<script type="module" src="/src/main.js"></scr' + 'ipt>',
-      "src/main.js": `
-document.body.innerHTML = "<div style='padding:20px;font-family:system-ui'><h1>Hello from vanilla</h1><p>Entry from index.html, built in the browser.</p></div>";
-      `.trim(),
-    };
-
-    async function run(framework, files) {
-      setStatus("Loading…", "loading");
-      previewEl.style.display = "none";
-      try {
-        const { buildSandbox } = await import("./dist/browser-sandbox.js");
-        setStatus("Building…", "loading");
-        const { url } = await buildSandbox({ files, framework });
-        setStatus("Done. Preview below.", "ok");
-        iframeEl.src = url;
-        previewEl.style.display = "block";
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        setStatus("Error: " + msg, "err");
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browser Sandbox — Example</title>
+    <style>
+      * {
+        box-sizing: border-box;
       }
-    }
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 1rem;
+        background: #1a1a1a;
+        color: #e0e0e0;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      section {
+        margin-bottom: 1.5rem;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        cursor: pointer;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+      }
+      button:hover {
+        background: #2563eb;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      #status {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        min-height: 1.5rem;
+      }
+      #status.ok {
+        background: #166534;
+        color: #bbf7d0;
+      }
+      #status.err {
+        background: #991b1b;
+        color: #fecaca;
+      }
+      #status.loading {
+        background: #1e3a5f;
+        color: #93c5fd;
+      }
+      #preview {
+        margin-top: 1rem;
+        border: 1px solid #444;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+      }
+      #preview iframe {
+        display: block;
+        width: 100%;
+        height: 600px;
+        border: none;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "esbuild-wasm": "https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Browser Sandbox — Example</h1>
+    <p>
+      Load the Axiom (React + Vite-style) project and preview it in the iframe
+      below.
+    </p>
 
-    document.getElementById("run-react").addEventListener("click", () => run("react", reactFiles));
-    document.getElementById("run-vanilla").addEventListener("click", () => run("vanilla", vanillaFiles));
-  </script>
-</body>
+    <section>
+      <label>Test</label>
+      <button type="button" id="run-build">Build Axiom</button>
+      <div id="status"></div>
+    </section>
+
+    <section id="preview" style="display: none">
+      <label>Preview</label>
+      <iframe id="iframe" title="Sandbox preview"></iframe>
+    </section>
+
+    <script type="module">
+      const statusEl = document.getElementById("status");
+      const iframeEl = document.getElementById("iframe");
+      const previewEl = document.getElementById("preview");
+
+      function setStatus(msg, type = "") {
+        statusEl.textContent = msg;
+        statusEl.className = type;
+      }
+
+      const AXIOM_PATHS = [
+        "package.json",
+        "index.html",
+        "src/main.jsx",
+        "src/App.jsx",
+        "src/components/Navigation.jsx",
+        "src/components/Hero.jsx",
+        "src/components/Features.jsx",
+        "src/components/Pricing.jsx",
+        "src/components/Testimonials.jsx",
+        "src/components/FAQ.jsx",
+        "src/components/Footer.jsx",
+      ];
+
+      async function loadAxiomFiles() {
+        const files = {};
+        for (const path of AXIOM_PATHS) {
+          const url = "./axiom/" + path;
+          const res = await fetch(url);
+          if (!res.ok)
+            throw new Error("Failed to fetch " + url + ": " + res.status);
+          files[path] = await res.text();
+        }
+        return files;
+      }
+
+      async function run() {
+        setStatus("Loading…", "loading");
+        previewEl.style.display = "none";
+        try {
+          const files = await loadAxiomFiles();
+          const { buildSandbox } = await import("./dist/browser-sandbox.js");
+          setStatus("Building…", "loading");
+          const { url } = await buildSandbox({ files, framework: "react" });
+          setStatus("Done. Preview below.", "ok");
+          iframeEl.src = url;
+          previewEl.style.display = "block";
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          setStatus("Error: " + msg, "err");
+        }
+      }
+
+      document.getElementById("run-build").addEventListener("click", run);
+    </script>
+  </body>
 </html>

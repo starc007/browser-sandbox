@@ -25,3 +25,33 @@ export function getEntryFromIndexHtml(html: string): string | null {
   const src = match?.[1] ?? match?.[2];
   return src ? normalizePath(src) : null;
 }
+
+/**
+ * Get react and react-dom versions from package.json (strip ^ and ~ for CDN).
+ */
+export function getReactVersionsFromPackageJson(
+  files: Record<string, string>
+): { react: string; reactDom: string } | null {
+  const pkgKey = Object.keys(files).find((p) => normalizePath(p) === "package.json");
+  const raw = pkgKey ? files[pkgKey] : undefined;
+  if (!raw) return null;
+  try {
+    const pkg = JSON.parse(raw) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    const react = deps?.react ?? deps?.React;
+    const reactDom = deps?.["react-dom"];
+    if (!react) return null;
+    const strip = (v: string) => v.replace(/^[\^~]/, "");
+    return { react: strip(react), reactDom: reactDom ? strip(reactDom) : strip(react) };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Replace the first <script type="module" src="..."> in html with scriptsBlock.
+ */
+export function injectScriptsIntoHtml(html: string, scriptsBlock: string): string {
+  const re = /<script[^>]*type\s*=\s*["']module["'][^>]*src\s*=\s*["'][^"']*["'][^>]*>\s*<\/script>/i;
+  return html.replace(re, scriptsBlock);
+}

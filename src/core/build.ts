@@ -34,18 +34,25 @@ export async function runBuild(
     throw new Error(`Entry file not found: ${entryPath}`);
   }
   const resolveDir = entryPath.includes("/") ? entryPath.replace(/\/[^/]*$/, "") : ".";
+  const sourcefile = entryPath.includes("/") ? entryPath.split("/").pop() : entryPath;
+  const loader = entryPath.endsWith(".tsx") || entryPath.endsWith(".jsx")
+    ? (entryPath.endsWith(".tsx") ? "tsx" : "jsx")
+    : entryPath.endsWith(".ts")
+      ? "ts"
+      : "js";
 
   const result = await esbuild.build({
     stdin: {
       contents: entryContent,
-      sourcefile: entryPath,
+      sourcefile,
       resolveDir,
-      loader: entryPath.endsWith(".tsx") ? "tsx" : entryPath.endsWith(".ts") ? "ts" : "js",
+      loader,
     },
     bundle: true,
     format: "esm",
     write: false,
     external,
+    jsx: "automatic",
     plugins: [virtualFsPlugin(fileMap)],
   });
 

@@ -1,6 +1,6 @@
 # Example — Test Browser Sandbox
 
-1. Build the package, copy `dist` into `example/dist`, and start a local server:
+1. Build the package, bundle the example script, and start a local server:
 
    ```bash
    bun run example
@@ -10,6 +10,6 @@
 
    **http://localhost:3000/**
 
-3. Click **Build React** or **Build Vanilla** to run a test build. The preview iframe will show the built app.
+3. Click **Build Axiom** to load the Axiom project (React + Vite-style under `axiom/`), build it in the browser, and preview it in the iframe.
 
-The page loads the built package from `../dist/` and calls `buildSandbox()` with sample files for React (src/main.tsx + src/App.tsx) and Vanilla (index.html + src/main.js).
+The page fetches the Axiom source files from the server, calls `buildSandbox({ files, framework: "react" })`, and displays the result in the iframe.

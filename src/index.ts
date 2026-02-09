@@ -19,7 +19,7 @@ export async function buildSandbox(
 
   const adapter = getAdapter(framework);
   const entryPath = adapter.getEntry(files);
-  const importMap = adapter.getImportMap();
+  const importMap = adapter.getImportMap(files);
   const external = Object.keys(importMap);
 
   let bundle: string;
@@ -31,7 +31,7 @@ export async function buildSandbox(
     throw new Error(`Build failed: ${message}`);
   }
 
-  const html = buildHtml(adapter, importMap, bundle);
+  const html = buildHtml(adapter, importMap, bundle, files);
   const url = createBlobUrl(html);
   return { url };
 }

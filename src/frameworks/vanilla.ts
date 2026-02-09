@@ -1,6 +1,6 @@
 import type { FrameworkAdapter } from "./types";
 import { normalizePath } from "../core/virtual-fs";
-import { getEntryFromIndexHtml } from "./utils";
+import { getEntryFromIndexHtml, injectScriptsIntoHtml } from "./utils";
 
 export const vanillaAdapter: FrameworkAdapter = {
   getEntry(files) {
@@ -25,11 +25,14 @@ export const vanillaAdapter: FrameworkAdapter = {
     return entryPath;
   },
 
-  getImportMap() {
+  getImportMap(_files) {
     return {};
   },
 
-  getHtmlTemplate(scriptsBlock) {
+  getHtmlTemplate(scriptsBlock, customHtml) {
+    if (customHtml) {
+      return injectScriptsIntoHtml(customHtml, scriptsBlock);
+    }
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
