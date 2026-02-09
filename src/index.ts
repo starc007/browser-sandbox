@@ -1,10 +1,10 @@
 import type { BuildSandboxOptions, BuildSandboxResult } from "./types";
 import { getAdapter } from "./frameworks/registry";
 import { runBuild } from "./core/build";
-import { buildHtml } from "./core/html";
+import { buildHtml, inlineCssInHtml } from "./core/html";
 import { createBlobUrl } from "./core/blob";
 import { formatError } from "./core/format-error";
-import { normalizePath } from "./core/virtual-fs";
+import { normalizePath, dirname } from "./core/virtual-fs";
 
 /**
  * Build a sandbox from in-memory project files and return a Blob URL for iframe loading.
@@ -27,22 +27,27 @@ export async function buildSandbox(
 
     let html: string;
     if (entryPath === "") {
-      const indexKey = Object.keys(files).find((p) => normalizePath(p) === "index.html");
+      const indexKey = Object.keys(files).find(
+        (p) => normalizePath(p).toLowerCase() === "index.html"
+      );
       const indexContent = indexKey ? files[indexKey] : undefined;
       if (!indexContent) throw new Error("index.html not found.");
-      html = indexContent;
+      const indexDir = indexKey ? dirname(indexKey) : "";
+      html = inlineCssInHtml(indexContent, files, indexDir);
     } else {
       const importMap = adapter.getImportMap(files);
       const external = [...new Set(Object.keys(importMap).filter((k) => !k.endsWith("/")))];
       let bundle: string;
+      let emittedCss: string | undefined;
       try {
         const result = await runBuild(files, entryPath, external);
         bundle = result.bundle;
+        emittedCss = result.css;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`Build failed: ${message}`);
       }
-      html = buildHtml(adapter, importMap, bundle, files);
+      html = buildHtml(adapter, importMap, bundle, files, emittedCss);
     }
 
     const url = createBlobUrl(html);

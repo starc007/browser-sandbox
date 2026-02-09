@@ -52,8 +52,17 @@ export function virtualFsPlugin(files: FileMap): Plugin {
         if (content === null) {
           return { contents: "", loader: "js" };
         }
-        const ext = args.path.split(".").pop() ?? "js";
-        const loader = ext === "tsx" ? "tsx" : ext === "ts" ? "ts" : ext === "jsx" ? "jsx" : "js";
+        const ext = (args.path.split(".").pop() ?? "js").toLowerCase();
+        const loader =
+          ext === "tsx"
+            ? "tsx"
+            : ext === "ts"
+              ? "ts"
+              : ext === "jsx"
+                ? "jsx"
+                : ext === "css"
+                  ? "css"
+                  : "js";
         return { contents: content, loader };
       });
     },

@@ -1,5 +1,5 @@
 import type { FrameworkAdapter } from "../types";
-import { findEntry, getImportMapFromPackageJson, injectScriptsIntoHtml } from "../utils";
+import { findEntry, getImportMapFromPackageJson, injectScriptsIntoHtmlWithBodyScript } from "../utils";
 
 const REACT_ENTRY_CANDIDATES = [
   "src/main.jsx",
@@ -44,7 +44,7 @@ export const reactAdapter: FrameworkAdapter = {
 
   getHtmlTemplate(scriptsBlock, customHtml) {
     if (customHtml) {
-      return injectScriptsIntoHtml(customHtml, scriptsBlock);
+      return injectScriptsIntoHtmlWithBodyScript(customHtml, scriptsBlock);
     }
     return `<!DOCTYPE html>
 <html lang="en">

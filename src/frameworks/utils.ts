@@ -102,3 +102,27 @@ export function injectScriptsIntoHtml(
     /<script[^>]*type\s*=\s*["']module["'][^>]*src\s*=\s*["'][^"']*["'][^>]*>\s*<\/script>/i;
   return html.replace(re, scriptsBlock);
 }
+
+/**
+ * For React with custom HTML: remove the user's entry script and inject the full
+ * scripts block (import map + style + bundle) right after <div id="root"></div>.
+ * Order is import map, then style, then script — so the script runs after #root and after the import map.
+ */
+export function injectScriptsIntoHtmlWithBodyScript(
+  html: string,
+  scriptsBlock: string
+): string {
+  // Remove user's <script type="module" src="..."> so it doesn't 404
+  const scriptTagRe =
+    /<script\s[^>]*(?:type\s*=\s*["']module["'][^>]*src\s*=\s*["'][^"']*["']|src\s*=\s*["'][^"']*["'][^>]*type\s*=\s*["']module["'])[^>]*>\s*<\/script>\s*/i;
+  let out = html.replace(scriptTagRe, "");
+
+  // Inject full block after #root (import map + style + script; script runs after #root exists)
+  const rootDivRe = /(<div\s+id\s*=\s*["']root["'][^>]*>\s*<\/div>)/i;
+  if (rootDivRe.test(out)) {
+    out = out.replace(rootDivRe, `$1\n${scriptsBlock}`);
+  } else {
+    out = out.replace("</body>", `${scriptsBlock}\n</body>`);
+  }
+  return out;
+}

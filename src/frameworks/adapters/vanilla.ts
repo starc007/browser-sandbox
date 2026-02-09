@@ -1,9 +1,5 @@
 import type { FrameworkAdapter } from "../types";
-import {
-  normalizePath,
-  dirname,
-  resolveRelative,
-} from "../../core/virtual-fs";
+import { normalizePath, dirname, resolveRelative } from "../../core/virtual-fs";
 import { getEntryFromIndexHtml } from "../utils";
 
 /** Returned by getEntry when index.html has no external script (inline-only). */
@@ -31,7 +27,9 @@ function resolveEntryPath(
   if (normalizedSet.has(resolvedPath)) return resolvedPath;
 
   const resolvedLower = resolvedPath.toLowerCase();
-  const caseMatch = normalizedList.find((p) => p.toLowerCase() === resolvedLower);
+  const caseMatch = normalizedList.find(
+    (p) => p.toLowerCase() === resolvedLower
+  );
   if (caseMatch) return caseMatch;
 
   const basename = resolvedPath.replace(/^.*\//, "");

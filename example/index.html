@@ -99,13 +99,6 @@
         flex: 0 0 auto;
       }
     </style>
-    <script type="importmap">
-      {
-        "imports": {
-          "esbuild-wasm": "https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.js"
-        }
-      }
-    </script>
   </head>
   <body>
     <h1>Browser Sandbox — Example</h1>
@@ -159,7 +152,7 @@
 
       const ALLOWED_EXT = /\.(js|jsx|ts|tsx|html|json|css)$/i;
       const IGNORE_DIRS =
-        /(^|\/)(node_modules|\.git|dist|build|__pycache__)(\/|$)/;
+        /(^|[\/\\])(node_modules|\.git|dist|build|__pycache__)([\/\\]|$)/;
 
       function setStatus(msg, type = "") {
         statusEl.textContent = msg;
@@ -167,17 +160,22 @@
       }
 
       function pathFromFile(file) {
+        let path;
         if (file.webkitRelativePath) {
-          const parts = file.webkitRelativePath.split("/");
+          const normalized = file.webkitRelativePath.replace(/\\/g, "/");
+          const parts = normalized.split("/");
           if (parts.length > 1) parts.shift();
-          return parts.join("/");
+          path = parts.join("/");
+        } else {
+          path = file.name;
         }
-        return file.name;
+        return path.replace(/\\/g, "/");
       }
 
       function shouldInclude(path) {
-        if (IGNORE_DIRS.test(path)) return false;
-        return ALLOWED_EXT.test(path);
+        const normalized = path.replace(/\\/g, "/");
+        if (IGNORE_DIRS.test(normalized)) return false;
+        return ALLOWED_EXT.test(normalized);
       }
 
       async function buildFilesFromInput() {
@@ -216,10 +214,16 @@
           let error = null;
           switch (framework) {
             case "react":
-              ({ url, error } = await buildSandbox({ files, framework: "react" }));
+              ({ url, error } = await buildSandbox({
+                files,
+                framework: "react",
+              }));
               break;
             case "vanilla":
-              ({ url, error } = await buildSandbox({ files, framework: "vanilla" }));
+              ({ url, error } = await buildSandbox({
+                files,
+                framework: "vanilla",
+              }));
               break;
             default:
               ({ url, error } = await buildSandbox({ files, framework }));

@@ -25,7 +25,7 @@ export async function runBuild(
   files: Record<string, string>,
   entryPath: string,
   external: string[] = []
-): Promise<{ bundle: string }> {
+): Promise<{ bundle: string; css?: string }> {
   await ensureEsbuildInit();
   const fileMap = createFileMap(files);
 
@@ -33,11 +33,18 @@ export async function runBuild(
   if (!entryContent) {
     throw new Error(`Entry file not found: ${entryPath}`);
   }
-  const resolveDir = entryPath.includes("/") ? entryPath.replace(/\/[^/]*$/, "") : ".";
-  const sourcefile = entryPath.includes("/") ? entryPath.split("/").pop() : entryPath;
-  const loader = entryPath.endsWith(".tsx") || entryPath.endsWith(".jsx")
-    ? (entryPath.endsWith(".tsx") ? "tsx" : "jsx")
-    : entryPath.endsWith(".ts")
+  const resolveDir = entryPath.includes("/")
+    ? entryPath.replace(/\/[^/]*$/, "")
+    : ".";
+  const sourcefile = entryPath.includes("/")
+    ? entryPath.split("/").pop()
+    : entryPath;
+  const loader =
+    entryPath.endsWith(".tsx") || entryPath.endsWith(".jsx")
+      ? entryPath.endsWith(".tsx")
+        ? "tsx"
+        : "jsx"
+      : entryPath.endsWith(".ts")
       ? "ts"
       : "js";
 
@@ -51,15 +58,46 @@ export async function runBuild(
     bundle: true,
     format: "esm",
     write: false,
+    outdir: ".",
     external,
     jsx: "automatic",
     plugins: [virtualFsPlugin(fileMap)],
   });
 
-  const out = result.outputFiles?.[0];
-  if (!out?.text) {
+  const outputs = result.outputFiles ?? [];
+  let bundle = "";
+  let css: string | undefined;
+
+  const norm = (p: string) => p.replace(/\\/g, "/").toLowerCase();
+
+  for (const out of outputs) {
+    const path = norm(out.path || "");
+    const text = out.text;
+    if (path.endsWith(".css") || looksLikeCss(text)) {
+      css = text;
+    } else if (path.endsWith(".js") || !looksLikeCss(text)) {
+      bundle = text;
+    }
+  }
+
+  if (!bundle) {
     const err = result.errors?.[0];
     throw new Error(err?.text ?? "Build failed: no output.");
   }
-  return { bundle: out.text };
+  return { bundle, css };
+}
+
+function looksLikeCss(text: string): boolean {
+  const sample = text.trim().slice(0, 400);
+  if (!sample.length) return false;
+  if (
+    /\b(import|export)\s+[\s\('"{}]|createRoot|React\.|from\s+["']react/.test(
+      sample
+    )
+  )
+    return false;
+  if (/^@(import|media|keyframes|charset|font-face)\s/i.test(sample))
+    return true;
+  if (/[#\.\-\w\[\]]+\s*\{\s*[a-z\-]+:\s*/.test(sample)) return true;
+  return false;
 }
