@@ -28,5 +28,20 @@
   "devDependencies": {
     "typescript": "^5.6.0"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/starc007/browser-sandbox.git"
+  },
+  "keywords": [
+    "browser",
+    "sandbox",
+    "preview",
+    "esbuild",
+    "react",
+    "vite",
+    "ai-generated"
+  ],
+  "license": "MIT",
+  "author": "Saurabh (https://x.com/saurra3h)"
 }

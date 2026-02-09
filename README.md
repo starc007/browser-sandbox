@@ -21,10 +21,14 @@ import { buildSandbox } from "browser-sandbox";
 // e.g. files from AI-generated project
 const { url, error } = await buildSandbox({
   files: {
-    "package.json": '{"dependencies":{"react":"^18.0.0","react-dom":"^18.0.0"}}',
-    "index.html": "<!DOCTYPE html><html><body><div id=\"root\"></div></body></html>",
-    "src/main.tsx": "import React from 'react'; import { createRoot } from 'react-dom/client'; import App from './App'; createRoot(document.getElementById('root')).render(<App />);",
-    "src/App.tsx": "import React from 'react'; export default function App() { return <h1>Hello</h1>; }",
+    "package.json":
+      '{"dependencies":{"react":"^18.0.0","react-dom":"^18.0.0"}}',
+    "index.html":
+      '<!DOCTYPE html><html><body><div id="root"></div></body></html>',
+    "src/main.tsx":
+      "import React from 'react'; import { createRoot } from 'react-dom/client'; import App from './App'; createRoot(document.getElementById('root')).render(<App />);",
+    "src/App.tsx":
+      "import React from 'react'; export default function App() { return <h1>Hello</h1>; }",
   },
   framework: "react",
 });
@@ -63,3 +67,15 @@ Open **http://localhost:3000/**. Choose **Framework** (React or Vanilla), select
 ## Adding frameworks
 
 Implement the `FrameworkAdapter` interface and add an adapter under `src/frameworks/adapters/`, then register it in `src/frameworks/registry.ts`. See `src/frameworks/adapters/react.ts` and `vanilla.ts` for examples.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and how to contribute.
+
+## Author
+
+Built by [Saurabh](https://x.com/saurra3h).
+
+## License
+
+[MIT](LICENSE)
