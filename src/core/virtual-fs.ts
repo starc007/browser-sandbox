@@ -9,6 +9,36 @@ export function normalizePath(path: string): string {
 }
 
 /**
+ * Directory of a path (empty string if at root). e.g. "src/index.html" → "src", "index.html" → "".
+ */
+export function dirname(path: string): string {
+  const n = normalizePath(path);
+  const i = n.lastIndexOf("/");
+  return i === -1 ? "" : n.slice(0, i);
+}
+
+/**
+ * Resolve a relative path against a base directory (project-root-relative).
+ * e.g. resolveRelative("src", "main.js") → "src/main.js", resolveRelative("src", "../script.js") → "script.js".
+ */
+export function resolveRelative(baseDir: string, relativePath: string): string {
+  const base = normalizePath(baseDir).replace(/\/$/, "") || "";
+  const rel = normalizePath(relativePath);
+  const combined = base ? base + "/" + rel : rel;
+  const parts = combined.split("/").filter(Boolean);
+  const out: string[] = [];
+  for (const seg of parts) {
+    if (seg === ".") continue;
+    if (seg === "..") {
+      out.pop();
+      continue;
+    }
+    out.push(seg);
+  }
+  return out.join("/") || ".";
+}
+
+/**
  * Build a normalized file map from raw path -> content.
  */
 export function createFileMap(files: Record<string, string>): Map<string, string> {

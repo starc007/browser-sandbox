@@ -1,53 +1,89 @@
 import type { FrameworkAdapter } from "../types";
-import { normalizePath } from "../../core/virtual-fs";
+import {
+  normalizePath,
+  dirname,
+  resolveRelative,
+} from "../../core/virtual-fs";
 import { getEntryFromIndexHtml } from "../utils";
 
 /** Returned by getEntry when index.html has no external script (inline-only). */
 const INLINE_ONLY = "";
 
+const JS_EXT = /\.(js|mjs|cjs)$/i;
+
+function findIndexHtmlKey(files: Record<string, string>): string | undefined {
+  const indexLower = "index.html";
+  return Object.keys(files).find(
+    (p) => normalizePath(p).toLowerCase() === indexLower
+  );
+}
+
+/**
+ * Resolve the entry script path against the list of normalized file paths.
+ * Tries: exact (resolved path), case-insensitive, basename with same-dir preference, then single .js fallback.
+ */
+function resolveEntryPath(
+  resolvedPath: string,
+  indexDir: string,
+  normalizedList: string[],
+  normalizedSet: Set<string>
+): string | null {
+  if (normalizedSet.has(resolvedPath)) return resolvedPath;
+
+  const resolvedLower = resolvedPath.toLowerCase();
+  const caseMatch = normalizedList.find((p) => p.toLowerCase() === resolvedLower);
+  if (caseMatch) return caseMatch;
+
+  const basename = resolvedPath.replace(/^.*\//, "");
+  const basenameCandidates = normalizedList.filter(
+    (p) => p === basename || p.endsWith("/" + basename)
+  );
+  if (basenameCandidates.length === 1) return basenameCandidates[0];
+  if (basenameCandidates.length > 1) {
+    const sameDir = basenameCandidates.find((p) => dirname(p) === indexDir);
+    if (sameDir) return sameDir;
+    const exactResolved = basenameCandidates.find((p) => p === resolvedPath);
+    if (exactResolved) return exactResolved;
+    return basenameCandidates[0];
+  }
+
+  const jsFiles = normalizedList.filter((p) => JS_EXT.test(p));
+  if (jsFiles.length === 1) return jsFiles[0];
+  return null;
+}
+
 /**
  * Vanilla: entry is always index.html. The script to bundle is taken from the first
- * <script type="module" src="..."> in index.html (e.g. script.js, main.js, src/main.js).
- * No fixed path list—any path in index.html works; other JS files are bundled via imports.
+ * <script src="..."> in index.html. Paths are resolved relative to index.html's directory,
+ * so it works with: multiple JS files, JS in folders, or mix of root and nested files.
  */
 export const vanillaAdapter: FrameworkAdapter = {
   getEntry(files) {
-    const indexLower = "index.html";
-    const indexKey = Object.keys(files).find(
-      (p) => normalizePath(p).toLowerCase() === indexLower
-    );
-    const indexContent = indexKey ? files[indexKey] : undefined;
-    if (!indexContent) {
+    const indexKey = findIndexHtmlKey(files);
+    if (!indexKey) {
       throw new Error("Entry file not found. Vanilla expects index.html.");
     }
-    let entryPath = getEntryFromIndexHtml(indexContent);
-    if (!entryPath) {
+    const indexContent = files[indexKey];
+    const rawScriptSrc = getEntryFromIndexHtml(indexContent);
+    if (!rawScriptSrc) {
       return INLINE_ONLY;
     }
+
+    const indexDir = dirname(indexKey);
+    const resolvedPath = resolveRelative(indexDir, rawScriptSrc);
     const normalizedList = Object.keys(files).map((p) => normalizePath(p));
     const normalizedSet = new Set(normalizedList);
-    if (normalizedSet.has(entryPath)) {
-      return entryPath;
-    }
-    // Case-insensitive match (e.g. script.js vs Script.js)
-    const entryLower = entryPath.toLowerCase();
-    const caseMatch = normalizedList.find(
-      (p) => p.toLowerCase() === entryLower
+
+    const entryPath = resolveEntryPath(
+      resolvedPath,
+      indexDir,
+      normalizedList,
+      normalizedSet
     );
-    if (caseMatch) return caseMatch;
-    // Basename match (e.g. HTML has "script.js", files have "src/script.js" or vice versa)
-    const entryBasename = entryPath.replace(/^.*\//, "");
-    const basenameMatch = normalizedList.find(
-      (p) => p === entryBasename || p.endsWith("/" + entryBasename)
-    );
-    if (basenameMatch) return basenameMatch;
-    // Fallback: if there is exactly one .js file in the project, use it (common case: index.html + script.js)
-    const jsExtensions = /\.(js|mjs|cjs)$/i;
-    const jsFiles = normalizedList.filter((p) => jsExtensions.test(p));
-    if (jsFiles.length === 1) return jsFiles[0];
-    throw new Error(
-      `Entry script not found in files: ${entryPath} (referenced from index.html).`
-    );
+    if (entryPath) return entryPath;
+
+    // Referenced script not in uploaded files (e.g. only index.html uploaded): serve HTML as-is (inline-only).
+    return INLINE_ONLY;
   },
 
   getImportMap(_files) {
