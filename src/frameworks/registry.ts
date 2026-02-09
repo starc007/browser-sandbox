@@ -1,20 +1,19 @@
 import type { FrameworkAdapter } from "./types";
 import { reactAdapter, vanillaAdapter } from "./adapters";
 
-const adapters: Record<string, FrameworkAdapter> = {
-  react: reactAdapter,
-  vanilla: vanillaAdapter,
-};
-
 export function getAdapter(name: string): FrameworkAdapter {
-  const adapter = adapters[name];
-  if (!adapter) {
-    const supported = Object.keys(adapters).join(", ");
-    throw new Error(`Unknown framework: '${name}'. Supported: ${supported}.`);
+  switch (name) {
+    case "react":
+      return reactAdapter;
+    case "vanilla":
+      return vanillaAdapter;
+    default:
+      throw new Error(
+        `Unknown framework: '${name}'. Supported: react, vanilla.`
+      );
   }
-  return adapter;
 }
 
 export function getSupportedFrameworks(): string[] {
-  return Object.keys(adapters);
+  return ["react", "vanilla"];
 }

@@ -3,7 +3,8 @@ import { normalizePath } from "./virtual-fs";
 
 /**
  * Build full HTML: inject import map and bundle script, then delegate to adapter for structure.
- * When files contain index.html, the adapter uses it as the template.
+ * Vanilla: index.html is rendered as-is; we only append the script block (no swap). React: we replace
+ * the first module script in the template with the script block.
  */
 export function buildHtml(
   adapter: FrameworkAdapter,
@@ -20,11 +21,12 @@ export function buildHtml(
   const bundleScript = `<script type="module">\n${bundleContent}\n</script>`;
   const scriptsBlock = importMapScript + bundleScript;
   const customHtml = files
-    ? Object.keys(files).find((p) => normalizePath(p) === "index.html")
-      ? files[
-          Object.keys(files).find((p) => normalizePath(p) === "index.html")!
-        ]
-      : undefined
+    ? (() => {
+        const key = Object.keys(files).find(
+          (p) => normalizePath(p) === "index.html"
+        );
+        return key ? files[key] : undefined;
+      })()
     : undefined;
   return adapter.getHtmlTemplate(scriptsBlock, customHtml);
 }

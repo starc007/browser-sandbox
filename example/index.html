@@ -207,10 +207,23 @@
         previewEl.style.display = "none";
         try {
           const files = await buildFilesFromInput();
+          console.log("files", files);
           const framework = frameworkSelect.value;
           const { buildSandbox } = await import("./dist/ai-browser-sandbox.js");
           setStatus("Building…", "loading");
-          const { url, error } = await buildSandbox({ files, framework });
+
+          let url = "";
+          let error = null;
+          switch (framework) {
+            case "react":
+              ({ url, error } = await buildSandbox({ files, framework: "react" }));
+              break;
+            case "vanilla":
+              ({ url, error } = await buildSandbox({ files, framework: "vanilla" }));
+              break;
+            default:
+              ({ url, error } = await buildSandbox({ files, framework }));
+          }
 
           if (error) {
             setStatus(error, "err");

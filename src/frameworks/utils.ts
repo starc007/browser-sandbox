@@ -19,14 +19,29 @@ export function findEntry(
 }
 
 /**
- * Parse index.html for the first <script type="module" src="..."> and return the src path (normalized).
+ * Parse index.html for the first script with src (module or classic) and return the src path (normalized).
+ * Strips query string and hash so "script.js?v=1" and "script.js#foo" resolve to "script.js".
  */
 export function getEntryFromIndexHtml(html: string): string | null {
-  const match = html.match(
+  // Prefer type="module" src="..."
+  const moduleMatch = html.match(
     /<script[^>]*\s+type\s*=\s*["']module["'][^>]*\s+src\s*=\s*["']([^"']+)["']|<\s*script[^>]*\s+src\s*=\s*["']([^"']+)["'][^>]*\s+type\s*=\s*["']module["']/i
   );
-  const src = match?.[1] ?? match?.[2];
-  return src ? normalizePath(src) : null;
+  const moduleSrc = moduleMatch?.[1] ?? moduleMatch?.[2];
+  if (moduleSrc) return normalizePath(stripQueryAndHash(moduleSrc));
+  // Fallback: any <script ... src="..."> (more permissive: [^>]+ allows any attribute order)
+  const srcMatch = html.match(/<script[^>]+src\s*=\s*["']([^"']+)["']/i);
+  return srcMatch?.[1] ? normalizePath(stripQueryAndHash(srcMatch[1])) : null;
+}
+
+function stripQueryAndHash(src: string): string {
+  const q = src.indexOf("?");
+  const h = src.indexOf("#");
+  const end =
+    q === -1 && h === -1
+      ? src.length
+      : Math.min(q === -1 ? src.length : q, h === -1 ? src.length : h);
+  return src.slice(0, end).trim();
 }
 
 const ESM_SH_BASE = "https://esm.sh";
@@ -77,6 +92,7 @@ export function getImportMapFromPackageJson(
 
 /**
  * Replace the first <script type="module" src="..."> in html with scriptsBlock.
+ * Used for React template; vanilla adapter does not swap—it appends.
  */
 export function injectScriptsIntoHtml(
   html: string,
