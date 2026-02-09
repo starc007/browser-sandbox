@@ -1,6 +1,5 @@
 import type { FrameworkAdapter } from "./types";
-import { reactAdapter } from "./react";
-import { vanillaAdapter } from "./vanilla";
+import { reactAdapter, vanillaAdapter } from "./adapters";
 
 const adapters: Record<string, FrameworkAdapter> = {
   react: reactAdapter,

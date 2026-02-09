@@ -1,6 +1,6 @@
-import type { FrameworkAdapter } from "./types";
-import { normalizePath } from "../core/virtual-fs";
-import { getEntryFromIndexHtml, getImportMapFromPackageJson, injectScriptsIntoHtml } from "./utils";
+import type { FrameworkAdapter } from "../types";
+import { normalizePath } from "../../core/virtual-fs";
+import { getEntryFromIndexHtml, getImportMapFromPackageJson, injectScriptsIntoHtml } from "../utils";
 
 /** Returned by getEntry when index.html has no external script (inline-only). */
 const INLINE_ONLY = "";

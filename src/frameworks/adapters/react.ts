@@ -1,5 +1,5 @@
-import type { FrameworkAdapter } from "./types";
-import { findEntry, getImportMapFromPackageJson, injectScriptsIntoHtml } from "./utils";
+import type { FrameworkAdapter } from "../types";
+import { findEntry, getImportMapFromPackageJson, injectScriptsIntoHtml } from "../utils";
 
 const REACT_ENTRY_CANDIDATES = [
   "src/main.jsx",
