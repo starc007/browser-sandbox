@@ -36,7 +36,9 @@ export async function buildSandbox(
       html = inlineCssInHtml(indexContent, files, indexDir);
     } else {
       const importMap = adapter.getImportMap(files);
-      const external = [...new Set(Object.keys(importMap).filter((k) => !k.endsWith("/")))];
+      const external = [
+        ...new Set(Object.keys(importMap).filter((k) => !k.endsWith("/"))),
+      ];
       let bundle: string;
       let emittedCss: string | undefined;
       try {

@@ -88,16 +88,21 @@ export async function runBuild(
 }
 
 function looksLikeCss(text: string): boolean {
-  const sample = text.trim().slice(0, 400);
+  const sample = text.trim().slice(0, 500);
   if (!sample.length) return false;
+  // JS indicators — do not treat as CSS
   if (
-    /\b(import|export)\s+[\s\('"{}]|createRoot|React\.|from\s+["']react/.test(
+    /\b(const|let|var|function)\s+\w|=>\s*\{|document\.|window\.|getElementById|addEventListener|\.insertAdjacentHTML|createChart|\.setData\(|createRoot|React\.|from\s+["']react|\b(import|export)\s+[\s\('"{}]/.test(
       sample
     )
   )
     return false;
+  // CSS @-rules
   if (/^@(import|media|keyframes|charset|font-face)\s/i.test(sample))
     return true;
-  if (/[#\.\-\w\[\]]+\s*\{\s*[a-z\-]+:\s*/.test(sample)) return true;
+  // CSS selector { property: — avoid matching JS object literals (e.g. "const x = { key:")
+  // Real CSS has selectors like #id, .class, or tag before {; JS has "= {" or ", key:"
+  if (/[#\.][\w\-]+\s*\{|^[\w\-]+\s*\{\s*[a-z\-]+:\s*/.test(sample))
+    return true;
   return false;
 }

@@ -210,6 +210,7 @@
           const files = await buildFilesFromInput();
           console.log("files", files);
           const framework = frameworkSelect.value;
+          console.log("framework", framework);
           const { buildSandbox } = await import("./dist/ai-browser-sandbox.js");
           setStatus("Building…", "loading");
 
