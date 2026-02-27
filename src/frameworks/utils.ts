@@ -115,7 +115,9 @@ export function getImportMapFromPackageJson(
     if (hasReact && deps["react-dom"]) {
       const rdVersion = normalizeVersion(deps["react-dom"]);
       if (rdVersion && !map["react-dom/client"]) {
-        map["react-dom/client"] = `${ESM_SH_BASE}/react-dom@${rdVersion}/client?external=react`;
+        map[
+          "react-dom/client"
+        ] = `${ESM_SH_BASE}/react-dom@${rdVersion}/client?external=react`;
       }
     }
 
@@ -128,6 +130,7 @@ export function getImportMapFromPackageJson(
 /**
  * Replace the first <script type="module" src="..."> in html with scriptsBlock.
  * Used for React template; vanilla adapter does not swap—it appends.
+ * Uses a function replacement so $ in scriptsBlock (e.g. "$100,000") is never interpreted as $1.
  */
 export function injectScriptsIntoHtml(
   html: string,
@@ -135,7 +138,7 @@ export function injectScriptsIntoHtml(
 ): string {
   const re =
     /<script[^>]*type\s*=\s*["']module["'][^>]*src\s*=\s*["'][^"']*["'][^>]*>\s*<\/script>/i;
-  return html.replace(re, scriptsBlock);
+  return html.replace(re, () => scriptsBlock);
 }
 
 /**
@@ -167,7 +170,8 @@ export function injectScriptsIntoHtmlWithBodyScript(
       const headMatch = out.match(/<head[^>]*>/i);
       if (headMatch) {
         const headEnd = out.indexOf(headMatch[0]) + headMatch[0].length;
-        out = out.slice(0, headEnd) + `\n${importMapBlock}` + out.slice(headEnd);
+        out =
+          out.slice(0, headEnd) + `\n${importMapBlock}` + out.slice(headEnd);
       } else {
         out = out.replace("</head>", `${importMapBlock}\n</head>`);
       }
@@ -175,7 +179,11 @@ export function injectScriptsIntoHtmlWithBodyScript(
       // No head tag - insert before first script or at start of body
       const firstScript = out.search(/<script/i);
       if (firstScript !== -1) {
-        out = out.slice(0, firstScript) + importMapBlock + "\n" + out.slice(firstScript);
+        out =
+          out.slice(0, firstScript) +
+          importMapBlock +
+          "\n" +
+          out.slice(firstScript);
       } else {
         out = importMapBlock + "\n" + out;
       }
@@ -183,7 +191,8 @@ export function injectScriptsIntoHtmlWithBodyScript(
   }
   const rootDivRe = /(<div\s+id\s*=\s*["']root["'][^>]*>\s*<\/div>)/i;
   if (rootDivRe.test(out)) {
-    out = out.replace(rootDivRe, `$1\n${afterImportMap}`);
+    // Use function replacement so $ in bundle (e.g. "$100,000") is never interpreted as $1
+    out = out.replace(rootDivRe, (match) => `${match}\n${afterImportMap}`);
   } else {
     out = out.replace("</body>", `${afterImportMap}\n</body>`);
   }
